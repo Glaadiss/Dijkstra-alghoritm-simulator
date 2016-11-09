@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1478692162 source:/home/bartek/Pulpit/cpp/maze/main.cpp
+	<SFML/Graphics.hpp>
+	<iostream>
+	<string>
+	<algorithm>
+	<vector>
+	<cstdlib>
+
