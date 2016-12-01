@@ -27,6 +27,32 @@ struct point{
     }
 };
 
+void fill_points_and_circles(std::vector<point>& , std::vector<sf::CircleShape>& , int , bool * );
+void connecting_circles_horizontaly(std::vector<point>&, std::vector<int> &, std::vector<sf::CircleShape>&, sf::Vertex lines_array[][2], int );
+void connecting_circles_verticaly(std::vector<point>&, std::vector<int>&, std::vector<sf::CircleShape>&, sf::Vertex lines_array[][2], int );
+void dijkstra_alg(std::vector<point> &, std::vector<int> &, std::vector<sf::CircleShape> &, sf::Vertex lines_array[][2], int , bool *);
+void render_app(std::vector<point> &, std::vector<int> &, std::vector<sf::CircleShape> &, sf::Vertex lines_array[][2], int , bool *, sf::RenderWindow&, int &);
+
+int main()
+{
+    srand(time(0));
+    int r = 10;
+    sf::RenderWindow app(sf::VideoMode(800, 600), "SFML window");
+    sf::Vertex lines_array[200][2];
+    std::vector<int> values(190, 1);
+    std::vector<point> points;
+    std::vector<sf::CircleShape> circles;
+    bool Q[100];
+    int point_id = 0;
+    fill_points_and_circles(points, circles, r, Q);
+    connecting_circles_horizontaly(points, values, circles, lines_array, r);
+    connecting_circles_verticaly(points, values, circles, lines_array, r);
+    dijkstra_alg(points, values, circles, lines_array, r, Q);
+    render_app(points, values, circles, lines_array, r, Q, app, point_id);
+    return EXIT_SUCCESS;
+}
+
+
 void fill_points_and_circles(std::vector<point> &points, std::vector<sf::CircleShape> &circles, int r, bool *Q){
     for(int i =0; i<10; ++i){
         for(int g =0; g<10; ++g){
@@ -137,21 +163,3 @@ void render_app(std::vector<point> &points, std::vector<int> &values, std::vecto
     }
 }
 
-int main()
-{
-    srand(time(0));
-    int r = 10;
-    sf::RenderWindow app(sf::VideoMode(800, 600), "SFML window");
-    sf::Vertex lines_array[200][2];
-    std::vector<int> values(190, 1);
-    std::vector<point> points;
-    std::vector<sf::CircleShape> circles;
-    bool Q[100];
-    int point_id = 0;
-    fill_points_and_circles(points, circles, r, Q);
-    connecting_circles_horizontaly(points, values, circles, lines_array, r);
-    connecting_circles_verticaly(points, values, circles, lines_array, r);
-    dijkstra_alg(points, values, circles, lines_array, r, Q);
-    render_app(points, values, circles, lines_array, r, Q, app, point_id);
-    return EXIT_SUCCESS;
-}
