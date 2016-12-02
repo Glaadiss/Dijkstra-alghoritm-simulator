@@ -27,27 +27,26 @@ struct point{
     }
 };
 
+void set_params(std::vector<point> &, std::vector<int> &, std::vector<sf::CircleShape> &, sf::Vertex lines_array[][2], int r , bool *, int start_point);
 void fill_points_and_circles(std::vector<point>& , std::vector<sf::CircleShape>& , int , bool * );
-void connecting_circles_horizontaly(std::vector<point>&, std::vector<int> &, std::vector<sf::CircleShape>&, sf::Vertex lines_array[][2], int );
-void connecting_circles_verticaly(std::vector<point>&, std::vector<int>&, std::vector<sf::CircleShape>&, sf::Vertex lines_array[][2], int );
-void dijkstra_alg(std::vector<point> &, std::vector<int> &, std::vector<sf::CircleShape> &, sf::Vertex lines_array[][2], int , bool *);
+void connecting_circles_horizontaly(std::vector<point>&, std::vector<int> &, std::vector<sf::CircleShape>&, sf::Vertex lines_array[][2], int r);
+void connecting_circles_verticaly(std::vector<point>&, std::vector<int>&, std::vector<sf::CircleShape>&, sf::Vertex lines_array[][2], int r );
+void dijkstra_alg(std::vector<point> &, std::vector<int> &, std::vector<sf::CircleShape> &, sf::Vertex lines_array[][2], int r , bool *, int start_point);
 void render_app(std::vector<point> &, std::vector<int> &, std::vector<sf::CircleShape> &, sf::Vertex lines_array[][2], int , bool *, sf::RenderWindow&, int &);
-
+void reset_points(std::vector<point> &);
 int main()
 {
     srand(time(0));
     int r = 10;
-    sf::RenderWindow app(sf::VideoMode(800, 600), "SFML window");
+    sf::RenderWindow app(sf::VideoMode(600, 600), "SFML window");
     sf::Vertex lines_array[200][2];
     std::vector<int> values(190, 1);
     std::vector<point> points;
     std::vector<sf::CircleShape> circles;
     bool Q[100];
     int point_id = 0;
-    fill_points_and_circles(points, circles, r, Q);
-    connecting_circles_horizontaly(points, values, circles, lines_array, r);
-    connecting_circles_verticaly(points, values, circles, lines_array, r);
-    dijkstra_alg(points, values, circles, lines_array, r, Q);
+    int start_point = 0;
+    set_params(points, values, circles, lines_array, r, Q, start_point);
     render_app(points, values, circles, lines_array, r, Q, app, point_id);
     return EXIT_SUCCESS;
 }
@@ -103,8 +102,8 @@ void connecting_circles_verticaly(std::vector<point> &points, std::vector<int> &
     }
 }
 
-void dijkstra_alg(std::vector<point> &points, std::vector<int> &values, std::vector<sf::CircleShape> &circles, sf::Vertex lines_array[][2], int r, bool *Q){
-    points[0].weight = 0;
+void dijkstra_alg(std::vector<point> &points, std::vector<int> &values, std::vector<sf::CircleShape> &circles, sf::Vertex lines_array[][2], int r, bool *Q, int start_point){
+    points[start_point].weight = 0;
     for( auto i : points){
         point bufor;
         bufor.weight = 9999999;
@@ -123,6 +122,13 @@ void dijkstra_alg(std::vector<point> &points, std::vector<int> &values, std::vec
             }
         }
     }
+}
+
+void set_params(std::vector<point> &points, std::vector<int> &values, std::vector<sf::CircleShape> &circles, sf::Vertex lines_array[][2], int r, bool *Q, int start_point){
+    fill_points_and_circles(points, circles, r, Q);
+    connecting_circles_horizontaly(points, values, circles, lines_array, r);
+    connecting_circles_verticaly(points, values, circles, lines_array, r);
+    dijkstra_alg(points, values, circles, lines_array, r, Q, start_point);
 }
 void render_app(std::vector<point> &points, std::vector<int> &values, std::vector<sf::CircleShape> &circles, sf::Vertex lines_array[][2], int r, bool *Q, sf::RenderWindow &app, int &point_id){
     while (app.isOpen())
@@ -151,6 +157,22 @@ void render_app(std::vector<point> &points, std::vector<int> &values, std::vecto
                     }
                 }
             }
+            if (event.mouseButton.button == sf::Mouse::Right)
+            {
+                for(int i=0; i < circles.size(); ++i){
+                    if(circles[i].getPosition().x <= event.mouseButton.x && circles[i].getPosition().x + 20 >= event.mouseButton.x){
+                        if(circles[i].getPosition().y <= event.mouseButton.y && circles[i].getPosition().y + 20 >= event.mouseButton.y){
+                            for( int j = 0; j < 100; j++ ){
+                                points[j].weight = 99;
+                                points[j].related_id = -1;
+                                Q[j] = true;
+                            }
+
+                            dijkstra_alg(points, values, circles, lines_array, r, Q, i);
+                        }
+                    }
+                }
+            }
         }
         for(int i =0; i < circles.size(); ++i){
             circles[i].setFillColor(sf::Color::White);
@@ -158,6 +180,10 @@ void render_app(std::vector<point> &points, std::vector<int> &values, std::vecto
         while( point_id > -1){
             circles[point_id].setFillColor(sf::Color::Red);
             point_id = points[point_id].related_id;
+        }
+        for( auto p : points){
+            if (p.weight == 0)
+                circles[p.id].setFillColor(sf::Color::Red);
         }
         app.display();
     }
