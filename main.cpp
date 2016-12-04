@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <vector>
 #include <cstdlib>
+#include <limits>
 
 struct point{
     short id;
@@ -27,17 +28,17 @@ struct point{
     }
 };
 
-void set_params(std::vector<point> &, std::vector<int> &, std::vector<sf::CircleShape> &, sf::Vertex lines_array[][2], int r , bool *, int start_point);
+void set_params(std::vector<point> &, std::vector<int> &, std::vector<sf::CircleShape> &, sf::Vertex lines_array[][2], int r , bool *, int start_point, int big_val);
 void fill_points_and_circles(std::vector<point>& , std::vector<sf::CircleShape>& , int , bool * );
 void connecting_circles_horizontaly(std::vector<point>&, std::vector<int> &, std::vector<sf::CircleShape>&, sf::Vertex lines_array[][2], int r);
 void connecting_circles_verticaly(std::vector<point>&, std::vector<int>&, std::vector<sf::CircleShape>&, sf::Vertex lines_array[][2], int r );
 void dijkstra_alg(std::vector<point> &, std::vector<int> &, std::vector<sf::CircleShape> &, sf::Vertex lines_array[][2], int r , bool *, int start_point);
 void render_app(std::vector<point> &, std::vector<int> &, std::vector<sf::CircleShape> &, sf::Vertex lines_array[][2], int , bool *, sf::RenderWindow&, int &);
 void reset_points(std::vector<point> &);
-int main()
-{
+
+int main(){
     srand(time(0));
-    int r = 10;
+    const int r = 10;
     sf::RenderWindow app(sf::VideoMode(600, 600), "SFML window");
     sf::Vertex lines_array[200][2];
     std::vector<int> values(190, 1);
@@ -46,13 +47,14 @@ int main()
     bool Q[100];
     int point_id = 0;
     int start_point = 0;
-    set_params(points, values, circles, lines_array, r, Q, start_point);
+    const int big_val = 999;
+    set_params(points, values, circles, lines_array, r, Q, start_point, big_val);
     render_app(points, values, circles, lines_array, r, Q, app, point_id);
     return EXIT_SUCCESS;
 }
 
 
-void fill_points_and_circles(std::vector<point> &points, std::vector<sf::CircleShape> &circles, int r, bool *Q){
+void fill_points_and_circles(std::vector<point> &points, std::vector<sf::CircleShape> &circles, int r, bool *Q, int big_val){
     for(int i =0; i<10; ++i){
         for(int g =0; g<10; ++g){
             sf::CircleShape circle;
@@ -62,7 +64,7 @@ void fill_points_and_circles(std::vector<point> &points, std::vector<sf::CircleS
             circle.setFillColor(sf::Color::White);
             circles.push_back(circle);
             short int iter = i * 10 + g;
-            point new_point =  { iter , 99, -1, 999, 999, 999, 999 };
+            point new_point =  { iter , big_val, -1, big_val, big_val , big_val , big_val };
             points.push_back(new_point);
             Q[iter] = true;
         }
@@ -70,7 +72,7 @@ void fill_points_and_circles(std::vector<point> &points, std::vector<sf::CircleS
 }
 
 
-void connecting_circles_horizontaly(std::vector<point> &points, std::vector<int> &values, std::vector<sf::CircleShape> &circles, sf::Vertex lines_array[][2], int r){
+void connecting_circles_horizontaly(std::vector<point> &points, std::vector<int> &values, std::vector<sf::CircleShape> &circles, sf::Vertex lines_array[][2], int r, int big_val){
     for( int i =1; i<100; ++i ){
         if ( i%10 != 0  && rand()%9 > 3 ){
             points[i-1].right=1;
@@ -79,14 +81,14 @@ void connecting_circles_horizontaly(std::vector<point> &points, std::vector<int>
             lines_array[i][1] = sf::Vertex(sf::Vector2f( circles[i].getPosition().x + r, circles[i].getPosition().y + r));
         }
         else {
-            points[i-1].right = 999;
-            points[i].left = 999;
-            values[i] = 999;
+            points[i-1].right = big_val;
+            points[i].left = big_val;
+            values[i] = big_val;
         }
     }
 }
 
-void connecting_circles_verticaly(std::vector<point> &points, std::vector<int> &values, std::vector<sf::CircleShape> &circles, sf::Vertex lines_array[][2], int r){
+void connecting_circles_verticaly(std::vector<point> &points, std::vector<int> &values, std::vector<sf::CircleShape> &circles, sf::Vertex lines_array[][2], int r, int big_val){
     for( int i =0; i<90; ++i ){
         if ( rand()%9 > 3 ){
             points[i].bot = 1;
@@ -95,9 +97,9 @@ void connecting_circles_verticaly(std::vector<point> &points, std::vector<int> &
             lines_array[i + 100][1] = sf::Vertex(sf::Vector2f( circles[i + 10].getPosition().x + r, circles[i + 10].getPosition().y + r), sf::Color::White);
         }
         else{
-            points[i].bot = 999;
-            points[i + 10].top = 999;
-            values [i +100] = 999;
+            points[i].bot = big_val;
+            points[i + 10].top = big_val;
+            values [i +100] = big_val;
         }
     }
 }
@@ -106,7 +108,7 @@ void dijkstra_alg(std::vector<point> &points, std::vector<int> &values, std::vec
     points[start_point].weight = 0;
     for( auto i : points){
         point bufor;
-        bufor.weight = 9999999;
+        bufor.weight = std::numeric_limits<int>::max();
         for(auto p : points){
             if (bufor.weight > p.weight && Q[p.id])
                 bufor = p;
@@ -124,10 +126,10 @@ void dijkstra_alg(std::vector<point> &points, std::vector<int> &values, std::vec
     }
 }
 
-void set_params(std::vector<point> &points, std::vector<int> &values, std::vector<sf::CircleShape> &circles, sf::Vertex lines_array[][2], int r, bool *Q, int start_point){
-    fill_points_and_circles(points, circles, r, Q);
-    connecting_circles_horizontaly(points, values, circles, lines_array, r);
-    connecting_circles_verticaly(points, values, circles, lines_array, r);
+void set_params(std::vector<point> &points, std::vector<int> &values, std::vector<sf::CircleShape> &circles, sf::Vertex lines_array[][2], int r, bool *Q, int start_point, int big_val){
+    fill_points_and_circles(points, circles, r, Q, big_val);
+    connecting_circles_horizontaly(points, values, circles, lines_array, r, big_val);
+    connecting_circles_verticaly(points, values, circles, lines_array, r, big_val );
     dijkstra_alg(points, values, circles, lines_array, r, Q, start_point);
 }
 void render_app(std::vector<point> &points, std::vector<int> &values, std::vector<sf::CircleShape> &circles, sf::Vertex lines_array[][2], int r, bool *Q, sf::RenderWindow &app, int &point_id){
@@ -163,7 +165,7 @@ void render_app(std::vector<point> &points, std::vector<int> &values, std::vecto
                     if(circles[i].getPosition().x <= event.mouseButton.x && circles[i].getPosition().x + 20 >= event.mouseButton.x){
                         if(circles[i].getPosition().y <= event.mouseButton.y && circles[i].getPosition().y + 20 >= event.mouseButton.y){
                             for( int j = 0; j < 100; j++ ){
-                                points[j].weight = 99;
+                                points[j].weight = 999;
                                 points[j].related_id = -1;
                                 Q[j] = true;
                             }
